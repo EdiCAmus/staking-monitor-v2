@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Staking Monitor</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 0;
+            padding: 20px;
+            background: #f8f9fa;
+        }
+
+        h1 { 
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 30px;
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .column {
+            background: #fff;
+            border-radius: 12px;
+            padding: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .column-title {
+            text-align: center;
+            margin: 0 0 15px 0;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 1.5em;
+        }
+
+        .btc { background: #f7931a20; color: #f7931a; }
+        .eth { background: #627eea20; color: #627eea; }
+        .usdt { background: #26a17b20; color: #26a17b; }
+
+        .coin-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .card {
+            background: #fff;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #eee;
+            transition: transform 0.2s;
+        }
+
+        .card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+        }
+
+        .card h3 {
+            margin: 0 0 8px 0;
+            font-size: 1.1em;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .card p {
+            margin: 4px 0;
+            font-size: 0.9em;
+            color: #666;
+        }
+
+        .project-link {
+            color: #2c3e50;
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+
+        .project-link:hover {
+            color: #3498db;
+            text-decoration: underline;
+        }
+
+        .external-icon {
+            width: 14px;
+            height: 14px;
+            opacity: 0.7;
+        }
+
+        .toggle-btn {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: all 0.3s;
+            width: 100%;
+        }
+
+        .toggle-btn:hover {
+            background: #2980b9;
+        }
+
+        .toggle-btn.collapse {
+            background: #e74c3c;
+        }
+
+        .toggle-btn.collapse:hover {
+            background: #c0392b;
+        }
+
+        @media (max-width: 768px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+                gap: 15px;
+                padding: 10px;
+            }
+
+            .column {
+                padding: 10px;
+            }
+
+            .column-title {
+                font-size: 1.3em;
+                margin-bottom: 10px;
+            }
+
+            h1 {
+                font-size: 1.8em;
+                margin-bottom: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>Ставки стейкинга</h1>
+    <div class="dashboard">
+        <div class="column">
+            <h2 class="column-title btc">BTC</h2>
+            <div id="btc-container" class="coin-container"></div>
+        </div>
+        <div class="column">
+            <h2 class="column-title eth">ETH</h2>
+            <div id="eth-container" class="coin-container"></div>
+        </div>
+        <div class="column">
+            <h2 class="column-title usdt">USDT</h2>
+            <div id="usdt-container" class="coin-container"></div>
+        </div>
+    </div>
+
+    <svg style="display: none;">
+        <symbol id="external-link" viewBox="0 0 24 24">
+            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6m4-3h6v6m-11 5L21 3"/>
+        </symbol>
+    </svg>
+
+    <script>
+        const state = {
+            limits: { BTC: 3, ETH: 3, USDT: 3 },
+            initialLimit: 3
+        };
+
+        const projectUrls = {
+            'lido': 'https://lido.fi',
+            'aave': 'https://aave.com',
+            'binance': 'https://www.binance.com/ru/staking',
+            'coinbase': 'https://www.coinbase.com/staking',
+            'kraken': 'https://www.kraken.com/learn/staking',
+            'celsius': 'https://celsius.network',
+            'nexo': 'https://nexo.io',
+            'blockfi': 'https://blockfi.com',
+            'staked.us': 'https://staked.us',
+            'stakefish': 'https://stake.fish',
+            'okx': 'https://www.okx.com/staking',
+            'kucoin': 'https://www.kucoin.com/earn',
+            'gemini': 'https://www.gemini.com/earn',
+            'huobi': 'https://www.huobi.com/en-us/staking/',
+            'crypto.com': 'https://crypto.com/earn'
+        };
+
+        const formatNumber = (num) => {
+            if (!num) return 'N/A';
+            return new Intl.NumberFormat('en-US').format(Math.round(num));
+        };
+
+        const createCard = (item) => {
+            const projectName = item.project?.trim() || 'Unknown';
+            const normalizedProject = projectName.toLowerCase().replace(/[^a-z0-9]/g, '');
+            const urlKey = Object.keys(projectUrls).find(key => 
+                key.toLowerCase().replace(/[^a-z0-9]/g, '') === normalizedProject
+            );
+
+            return `
+                <div class="card">
+                    <h3>
+                        ${urlKey 
+                            ? `<a href="${projectUrls[urlKey]}" target="_blank" rel="noopener" class="project-link">
+                                ${projectName}
+                                <svg class="external-icon"><use href="#external-link"/></svg>
+                            </a>`
+                            : projectName}
+                    </h3>
+                    <p>APY: <b>${item.apy?.toFixed(2) ?? 'N/A'}%</b></p>
+                    <p>TVL: $${formatNumber(item.tvlUsd)}</p>
+                </div>
+            `;
+        };
+
+        const renderData = (data) => {
+            console.log('Все проекты для отладки:', [...new Set(data.map(item => item.project))]);
+            
+            ['BTC', 'ETH', 'USDT'].forEach(symbol => {
+                const container = document.getElementById(`${symbol.toLowerCase()}-container`);
+                if (!container) return;
+
+                const allItems = data.filter(item => 
+                    item.symbol?.toUpperCase() === symbol
+                ).sort((a, b) => (b.apy || 0) - (a.apy || 0));
+
+                const visibleItems = allItems.slice(0, state.limits[symbol]);
+                const isExpanded = state.limits[symbol] > state.initialLimit;
+
+                container.innerHTML = '';
+                visibleItems.forEach(item => {
+                    container.innerHTML += createCard(item);
+                });
+
+                if (allItems.length > state.initialLimit) {
+                    const btn = document.createElement('button');
+                    btn.className = `toggle-btn ${isExpanded ? 'collapse' : ''}`;
+                    btn.textContent = isExpanded ? 'Скрыть' : 'Показать ещё';
+                    btn.onclick = () => {
+                        state.limits[symbol] = isExpanded 
+                            ? state.initialLimit 
+                            : state.limits[symbol] + 3;
+                        renderData(data);
+                    };
+                    container.appendChild(btn);
+                }
+            });
+        };
+
+        fetch('http://localhost:3001/api/yields')
+            .then(response => response.json())
+            .then(data => renderData(data))
+            .catch(error => console.error('Ошибка:', error));
+
+        setInterval(() => {
+            fetch('http://localhost:3001/api/yields')
+                .then(response => response.json())
+                .then(data => renderData(data))
+                .catch(console.error);
+        }, 300000);
+    </script>
+</body>
+</html>

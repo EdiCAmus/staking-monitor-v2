@@ -1,0 +1,115 @@
+body {
+    font-family: 'Arial', sans-serif;
+    margin: 0;
+    padding: 20px;
+    background: #f0f2f5;
+}
+
+h1 {
+    text-align: center;
+    color: #2c3e50;
+    margin-bottom: 30px;
+}
+
+.dashboard {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.column {
+    background: white;
+    border-radius: 12px;
+    padding: 15px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.column-title {
+    text-align: center;
+    margin: 0 0 15px 0;
+    padding: 10px;
+    border-radius: 8px;
+    font-size: 1.5em;
+}
+
+.btc { background: #f7931a20; color: #f7931a; }
+.eth { background: #627eea20; color: #627eea; }
+.usdt { background: #26a17b20; color: #26a17b; }
+
+.coin-container {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.card {
+    background: #fff;
+    padding: 15px;
+    border-radius: 8px;
+    border: 1px solid #eee;
+    transition: transform 0.2s;
+}
+
+.card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+}
+
+.card h3 {
+    margin: 0 0 8px 0;
+    font-size: 1.1em;
+}
+
+.card p {
+    margin: 4px 0;
+    font-size: 0.9em;
+    color: #666;
+}
+
+.toggle-btn {
+    background: #3498db;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-top: 10px;
+    transition: all 0.3s;
+    width: 100%;
+}
+
+.toggle-btn:hover {
+    background: #2980b9;
+}
+
+.toggle-btn.collapse {
+    background: #e74c3c;
+}
+
+.toggle-btn.collapse:hover {
+    background: #c0392b;
+}
+
+@media (max-width: 768px) {
+    .dashboard {
+        grid-template-columns: 1fr;
+        gap: 15px;
+        padding: 10px;
+    }
+
+    .column {
+        padding: 10px;
+    }
+
+    .column-title {
+        font-size: 1.3em;
+        margin-bottom: 10px;
+    }
+
+    h1 {
+        font-size: 1.8em;
+        margin-bottom: 20px;
+    }
+}
